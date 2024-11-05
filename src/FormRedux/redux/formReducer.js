@@ -1,4 +1,3 @@
-// import { message } from "antd"
 
 const initialState = {
     formUser: {
@@ -8,7 +7,8 @@ const initialState = {
         email: ""
     },
     listUsers: [],
-    isReadOnly: false
+    isReadOnly: false,
+    searchedUsers: []
 };
 
 const userReducer = (state = initialState, action) => {
@@ -16,7 +16,7 @@ const userReducer = (state = initialState, action) => {
         case "LOAD_USERS_FROM_LOCAL_STORAGE": {
             return {
                 ...state,
-                listUser: action.payload
+                listUsers: action.payload
             };
         }
         case "handleChangeUserForm": {
@@ -36,6 +36,7 @@ const userReducer = (state = initialState, action) => {
                 alert("SV đã tồn tại")
                 return { ...state }
             }
+            localStorage.setItem("USERS", JSON.stringify(newListUser));
             return {
                 ...state,
                 listUsers: newListUser
@@ -43,6 +44,7 @@ const userReducer = (state = initialState, action) => {
         }
         case "handleDeleteUser": {
             let newListUser = state.listUsers.filter((user) => user.id !== action.payload.userID)
+            localStorage.setItem("USERS", JSON.stringify(newListUser));
             return {
                 ...state,
                 listUsers: newListUser
@@ -63,15 +65,31 @@ const userReducer = (state = initialState, action) => {
         }
         case "handleUpdateUser": {
             let index = state.listUsers.findIndex((user) => user.id == action.payload.dataForm.id)
-            // let state.listUsers[index] = action.payload.dataForm
+
             let newListUser = [...state.listUsers]
             newListUser[index] = action.payload.dataForm
-
+            localStorage.setItem("USERS", JSON.stringify(newListUser));
             return {
                 ...state,
                 isReadOnly: false,
                 listUsers: newListUser
             }
+        }
+        case "handleSearching": {
+            let searchInput = action.payload.event.target.value;
+            let searchTerm = searchInput.toLowerCase();
+
+            let searchedUsers = state.listUsers.filter(
+                (user) =>
+                    (user.id && user.id.toLowerCase().includes(searchTerm)) ||
+                    (user.username && user.username.toLowerCase().includes(searchTerm)) ||
+                    (user.tel && user.tel.includes(searchTerm))
+            );
+
+            return {
+                ...state,
+                searchedUsers: searchedUsers
+            };
         }
         default:
             return state;
